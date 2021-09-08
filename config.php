@@ -18,7 +18,7 @@ $CFG->dboptions = array (
   'dbcollation' => 'utf8_general_ci',
 );
 
-$CFG->wwwroot   = 'http://localhost:8888/moodle';
+$CFG->wwwroot   = 'http://localhost:8888/moodle_repo';
 $CFG->dataroot  = '/Applications/MAMP/moodledata';
 $CFG->admin     = 'admin';
 
