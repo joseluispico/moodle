@@ -23,6 +23,8 @@
  * @copyright  1999 onwards Martin Dougiamas (http://dougiamas.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+use local_message\form\edit;
+use local_message\manager;
 
 require_once (__DIR__ . '/../../config.php');
 require_once ($CFG->dirroot . '/local/message/classes/form/edit.php');
@@ -33,6 +35,8 @@ $PAGE->set_url(new moodle_url('/local/message/edit.php'));
 $PAGE->set_context(\context_system::instance());
 $PAGE->set_title('Edit Message');
 
+$messageid = optional_param('messageid', null, PARAM_INT);
+
 // We want to display our form
 
 $mform = new edit();
@@ -42,17 +46,33 @@ if ($mform->is_cancelled()) {
     redirect($CFG->wwwroot . '/local/message/manage.php', get_string('canceled', 'local_message'));
     }
     else if ($fromform = $mform->get_data()) {
-    //Insert the data into the database
-        $recordtoinsert = new stdClass();
-        $recordtoinsert->messagetext = $fromform->messagetext;
-        $recordtoinsert->messagetype = $fromform->messagetype;
 
-        $DB->insert_record('local_message', $recordtoinsert);
+        $manager = new manager();
+        if ($fromform->id) {
+            // We are updating the message id
+            $manager->update_message($fromform->id, $fromform->messagetext, $fromform->messagetype);
+            redirect($CFG->wwwroot . '/local/message/manage.php', get_string('update_form', 'local_message') . $fromform->messagetext);
+        }
+
+        $manager->create_message($fromform->messagetext, $fromform->messagetype);
 
         //Go back to manage.php
         redirect($CFG->wwwroot . '/local/message/manage.php', get_string('messagecreated', 'local_message'));
 
 
+    }
+
+
+if ($messageid) {
+        // Add extra data to the form
+        global $DB;
+        $manager = new manager();
+        $message = $manager->get_message($messageid);
+
+        if (!$messageid) {
+            throw new invalid_parameter_exception('Message not found');
+        }
+        $mform->set_data($message);
     }
 
 echo $OUTPUT->header();

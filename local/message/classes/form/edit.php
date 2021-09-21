@@ -23,9 +23,12 @@
  * @copyright  1999 onwards Martin Dougiamas (http://dougiamas.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace local_message\form;
+use moodleform;
 
 //moodleform is defined in formslib.php
 require_once("$CFG->libdir/formslib.php");
+
 
 class edit extends moodleform {
     //Add elements to form
@@ -33,7 +36,8 @@ class edit extends moodleform {
         global $CFG;
 
         $mform = $this->_form; // Don't forget the underscore!
-
+        $mform->addElement('hidden', 'id');
+        $mform->setType('id', PARAM_INT);
         $mform->addElement('text', 'messagetext', get_string('label','local_message')); // Add elements to your form
         $mform->setType('messagetext', PARAM_NOTAGS);                   //Set type of element
         $mform->setDefault('messagetext', 'Please enter a message');        //Default value

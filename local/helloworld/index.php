@@ -34,56 +34,110 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require(__DIR__ . '../../../config.php');
-require_once($CFG->libdir.'/adminlib.php');
+use local_helloworld\form\add;
+use local_helloworld\manager;
+//global $CFG;
+
+//require_once($CFG->libdir.'/adminlib.php');
+require_once(__DIR__ . '/../../config.php');
+require_once ($CFG->dirroot . '/local/helloworld/classes/form/add.php');
+
+global $DB, $USER;
+
 // This line is tp setup the page.
 $title = get_string('pluginname','local_helloworld');
 $pagetitle = $title;
-$url = new moodle_url("/local/helloworld/index.php");
-$PAGE->set_context(context_system::instance());
+$url = new moodle_url('/local/helloworld/index.php');
+$PAGE->set_context(\context_system::instance());
 $PAGE->set_url($url);
+$PAGE->requires->js_call_amd('local_helloworld/confirm');
+require_login();
+
+
+if (isguestuser()) {
+    print_error('guestnoeditmessage', 'message');
+}
+
 $PAGE->set_title($title);
-$PAGE->set_pagelayout('standard');
+//$PAGE->set_pagelayout('standard');
 $PAGE->set_heading($title);
-//$PAGE->blocks->add_region('content');
-//$output = $PAGE->get_renderer('local_helloworld');
+
+$mform = new add();
+$userid = $USER->id;
+
+ if ($fromform = $mform->get_data()) {
+
+    $manager = new manager();
+
+    $personalcontext = context_system::instance();
+
+    require_capability('local/helloworld:postanymessages', $personalcontext);
+    // Insert only if user has capability - second layer security
+        $manager->create_message($fromform->message, $userid);
+     //Go back to index
+     redirect($CFG->wwwroot . '/local/helloworld/index.php', get_string('messagecreated', 'local_message'));
+
+}
+//$userfields = get_all_user_name_fields(true, 'u');
+
+ $sql = "SELECT ul.id, ul.message, u.firstname, u.lastname, ul.timecreated 
+         FROM {user} u 
+         INNER JOIN {local_helloworld} ul
+         ON u.id = ul.userid
+         ORDER BY ul.timecreated DESC";
+
+ $records = $DB->get_records_sql($sql);
+
+ foreach ($records as $record=>$ui){
+
+     $ui->fullname = $ui->firstname. ' ' .$ui->lastname;
+     $ui->message = $ui->message;
+     $ui->timecreated = date_format_string($ui->timecreated, '%Y-%m-%d');
+     $records[$record] = $ui;
+ }
+//var_dump($records);
+//die();
+ //$messages = $DB->get_records('local_helloworld', null, 'id');
+
 
 echo $OUTPUT->header();
-//echo $OUTPUT->heading($pagetitle);
-echo html_writer::tag('input', '', [
-    'type' => 'text',
-    'name' => 'username',
-    'placeholder' => get_string('typeyourname', 'local_helloworld'),
-]);
-echo html_writer::tag('input', '', [
-    'type' => 'submit',
-    'name' => 'submit',
-]);
 
-$previewnode = $PAGE->navigation->add(get_string('pluginname', 'local_helloworld'), new moodle_url('/local/helloworld/index.php'), navigation_node::TYPE_CONTAINER);
-$thingnode = $previewnode->add(get_string('pluginname', 'local_helloworld'), new moodle_url('/local/helloworld/index.php'));
-$thingnode->make_active();
-// $renderable = new \tool_demo\output\index_page('Some text');
-// echo $output->render($renderable);
-//echo $OUTPUT->custom_block_region('content');
+//$previewnode = $PAGE->navigation->add(get_string('pluginname', 'local_helloworld'), new moodle_url('/local/helloworld/index.php'), navigation_node::TYPE_CONTAINER);
+//$thingnode = $previewnode->add(get_string('pluginname', 'local_helloworld'), new moodle_url('/local/helloworld/index.php'));
+//$thingnode->make_active();
+
+$context = context_system::instance();
+//var_dump(has_capability('local/helloworld:postanymessages', $context));
+//die();
+if (has_capability('local/helloworld:postanymessages', $context)){
+
+    // Display the form
+    echo html_writer::start_tag('div', [
+        'class' => 'card mt-2 mb-2'
+    ]);
+    echo html_writer::start_tag('div', [
+        'class' => 'card-body'
+    ]);
+    $mform->display();
+    echo html_writer::end_tag('div');
+    echo html_writer::end_tag('div');
+
+}
+
+if(has_capability('local/helloworld:viewanymessages', $context)) {
+    // Display the messages card
+    $templatecontext = (object)[
+        'messages' => array_values($records),
+        'fullname' => array_values($records),
+        'timecreated' => array_values($records)
+    ];
+
+    echo $OUTPUT->render_from_template('local_helloworld/hello', $templatecontext);
+}
+//if (has_capability('local/helloworld:deleteanymessages', $context)) {
+//    // Display Delete button
+//
+//}
+
 echo $OUTPUT->footer();
-// $userviewurl = "";
-// if (isset($_GET['username'])) {
-//     $username = required_param('username', PARAM_TEXT);
-//     $userviewurl = new moodle_url('../helloworld/index.php', ['username' => $username]);
-//     echo get_string('hello', 'local_helloworld'). " " . $_GET['username'] ."<br /><br>";
-//     echo "<a href=/moodle/my/>". get_string('question', 'local_helloworld')."</a>";
-//     echo "<a href='../helloworld/index.php'>".get_string('backtomain', 'local_helloworld')."</a>";
-//     $now = time();
-//     echo userdate($now);
-//     exit();
-// } else {
-//     $username = get_string('world', 'local_helloworld');;
-//     echo "<h1>". get_string('hello', 'local_helloworld'). " " . $username ."</h1>";
-//     echo "<form method='GET' action=".$userviewurl.">";
-//     echo get_string('question', 'local_helloworld');
-//     echo "<input type='text' name='username' placeholder='Type your name'>";
-//     echo "<input type='submit' name='submit'>";
-//     echo "</form>";
-// }
 

@@ -33,4 +33,18 @@ $string['question'] = '<p>What is your name?</p>';
 $string['backtomain'] = '<p>Back to the Hello World Plugin</p>';
 $string['typeyourname'] = 'Type your name';
 $string['sayhello'] = 'Say Hello to us!';
+$string['showinnav'] = 'Show in navigation';
+$string['showinnav_desc'] = 'When enabled, the site navigation will display a link to the Hello World plugin main page';
+$string['manage'] = 'Hello World Menu settings';
+$string['helloworld:viewanymessages'] = 'View any posted messages from the Hello World wall';
+$string['helloworld:deleteanymessages'] = 'Delete any posted messages from the Hello World wall';
+$string['helloworld:postanymessages'] = 'Post any posted messages from the Hello World wall';
+$string['delete_message'] = 'Delete Message';
+$string['delete_message_confirm'] = 'Are you sure you want to change the message';
+$string['messagecreated'] = 'You created a message successfully';
+$string['delete_message_failed'] = 'The message cannot be delete, process failed';
+
+
+
+
 
